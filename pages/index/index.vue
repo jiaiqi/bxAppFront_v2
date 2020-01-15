@@ -9,21 +9,15 @@
         </view>
         <image src="/static/msg.png" class="btn"></image>
       </view>
-      <view class="header_content">
-        <view class="left">
-          <text class="title">教资面试精品课</text>
-          <text class="sub_title">读懂考官套路，轻松备考面试</text>
-          <text class="btn">免费试学</text>
-        </view>
-        <view><image src="/static/right.png" style="width: 131px;height: 122px;"></image></view>
-      </view>
+      <view class="header_content"><bw-swiper :swiperList="swiperList" style="width:100%"></bw-swiper></view>
     </view>
     <view class="page_content">
       <view class="menu">
-        <template v-for="(it, i) in menus">
-          <view class="item" :key="'menu_' + i">
-            <view class="img_view" :style="{ background: it.bg }"><image :src="it.icon" class="image"></image></view>
-            <text class="txt">{{ it.txt }}</text>
+        <template v-for="(it, i) in menus" v-show="menus.length > 0">
+          <view @click="lists" class="item" :key="'menu_' + i">
+            <view class="img_view" :style="{ background: it.bg }"></view>
+            <!-- <image :src="it.icon" class="image"></image> -->
+            <text class="txt">{{ it.menu_name }}</text>
           </view>
         </template>
       </view>
@@ -52,45 +46,45 @@
               <text class="main">主讲：{{ it.mainTeacher }}</text>
               <text class="sub" :style="{ color: it.subColor }">标题名称</text>
             </view>
-            <image class="image" :src="it.icon"></image>
+            <!-- <image class="image" :src="it.icon"></image> -->
             <text class="free">免\n费</text>
           </view>
         </view>
       </template>
     </scroll-view>
-    <button type="primary" @click="toLogin">登录</button>
+    <button type="primary" open-type="getUserInfo" @getuserinfo="getuserinfo">授权管理</button>
   </view>
 </template>
 
 <script>
+import bwSwiper from '@/components/bw-swiper/bw-swiper.vue';
 export default {
+  components: {
+    bwSwiper
+  },
   data() {
     return {
-      menus: [
+      openid: '',
+      swiperList: [
         {
-          bg: 'linear-gradient(0deg,rgba(9,216,162,1),rgba(90,242,217,1))',
-          icon: '/static/graduation.png',
-          txt: '同伴管',
-          isFree: true
+          img: 'https://ossweb-img.qq.com/images/lol/web201310/skin/big25011.jpg',
+          text: '加油'
         },
         {
-          bg: 'linear-gradient(0deg,rgba(251,184,35,1),rgba(255,228,40,1))',
-          icon: '/static/live.png',
-          txt: '直播课',
-          isFree: false
+          img: 'https://ossweb-img.qq.com/images/lol/web201310/skin/big25011.jpg',
+          text: '加油'
         },
         {
-          bg: 'linear-gradient(0deg,rgba(255,126,34,1),rgba(240,184,27,1))',
-          icon: '/static/emblem.png',
-          txt: '优选课',
-          isFree: true
-        },
-        {
-          bg: 'linear-gradient(0deg,rgba(9,177,252,1),rgba(24,200,255,1))',
-          icon: '/static/question_bank.png',
-          txt: '智能题库',
-          isFree: true
+          img: 'https://ossweb-img.qq.com/images/lol/web201310/skin/big25011.jpg',
+          text: '加油'
         }
+      ],
+      menus: [],
+      bgcolor: [
+        'linear-gradient(0deg,rgba(9,216,162,1),rgba(90,242,217,1))',
+        'linear-gradient(0deg,rgba(251,184,35,1),rgba(255,228,40,1))',
+        'linear-gradient(0deg,rgba(255,126,34,1),rgba(240,184,27,1))',
+        'linear-gradient(0deg,rgba(9,177,252,1),rgba(24,200,255,1))'
       ],
       second_menus: [
         {
@@ -141,12 +135,166 @@ export default {
       ]
     };
   },
-  onLoad() {},
+  onShow() {
+    this.toLogin();
+    this.getMenuData()
+    this.checkLoginStatus(); //检测登录状态
+    this.checkAuthorization(); // 检测是否授权读取用户信息
+  },
   methods: {
-    toLogin() {
-      uni.navigateTo({
-        url: '../login/login'
+    getuserinfo(e) {
+      // 获取用户信息
+      console.log('同意用户信息授权', e.detail.rawData);
+      if (e.detail.rawdata) {
+        uni.setStorageSync('userInfo', e.detail.rawdata);
+      }
+    },
+    openSetting() {
+      // 打开权限设置页面
+      uni.openSetting({
+        success(res) {
+          console.log(res.authSetting);
+        }
       });
+    },
+    checkLoginStatus() {
+      let that = this;
+      // 检测登录状态
+      // #ifdef MP-WEIXIN
+      wx.checkSession({
+        success() {
+          console.log('登录未过期');
+          //session_key 未过期，并且在本生命周期一直有效
+        },
+        fail() {
+          console.log('登录过期');
+          // session_key 已经失效，需要重新执行登录流程
+          // that.toLogin(); //重新登录
+        }
+      });
+      // #endif
+      // #ifdef APP-PLUS || H5
+      let isLogin = uni.getStorageSync('is_login');
+      if (isLogin === 'true') {
+        this.getMenuData();
+      } else {
+        this.toAccountLogin()
+      }
+      // #endif
+    },
+    checkAuthorization() {
+      // 查看是否授权
+      // #ifdef MP-WEIXIN
+      uni.authorize({
+        scope: 'scope.userInfo',
+        success(res) {
+          console.log('获取用户信息授权成功', res);
+          // 获取用户信息
+          uni.getUserInfo({
+            provider: 'weixin',
+            success: function(infoRes) {
+              uni.setStorageSync('userInfo', infoRes.rawData);
+            }
+          });
+        },
+        fail(errMsg) {
+          console.log('获取用户信息授权失败', errMsg);
+        }
+      });
+
+      // #endif
+    },
+    toLogin() {
+      // 静默登录
+      let that = this;
+      // #ifdef MP-WEIXIN
+      wx.login({
+        // 获取小程序code
+        success(res) {
+          if (res.code) {
+            //验证登录
+            let url = that.getServiceUrl('wx', 'srvwx_app_login_verify', 'operate');
+            let req = [
+              {
+                data: [
+                  {
+                    code: res.code,
+                    app_no: 'APPNO20200115100113'
+                  }
+                ],
+                serviceName: 'srvwx_app_login_verify'
+              }
+            ];
+            that.$http.post(url, req).then(response => {
+              if (response.data.resultCode === 'SUCCESS') {
+                let resData = response.data.response[0].response;
+                let expire_timestamp = parseInt(new Date().getTime() / 1000) + resData.expire_time; //过期时间的时间戳
+                uni.setStorageSync('bx_auth_ticket', resData.bx_auth_ticket);
+                uni.setStorageSync('expire_time', resData.expire_time); // 过期时间
+                uni.setStorageSync('expire_timestamp', expire_timestamp); // 过期时间
+                if (resData.login_user_info) {
+                  //匿名登录
+                  uni.setStorageSync('login_user_info', resData.login_user_info); //匿名登录信息
+                  that.openid = resData.login_user_info.openid;
+                } else {
+                  uni.setStorageSync('login_user_info', null);
+                }
+              } else if (response.data.resultCode === 'FAILURE') {
+                uni.showToast({
+                  title: response.data.resultMessage
+                });
+              }
+            });
+          } else {
+            uni.setStorageSync('is_login', 'true'); // 登录状态
+            console.log('登录失败！' + res.errMsg);
+          }
+        }
+      });
+      // #endif
+    },
+    toAccountLogin() {
+      // 账号登录
+      uni.showModal({
+        title: '提示',
+        content: '点击确定跳转到登录页面?',
+        showCancel: false,
+        success: res => {
+          if (res.confirm) {
+            uni.navigateTo({
+              url: '../login/login?openid=' + this.openid
+            });
+          }
+        }
+      });
+    },
+    //获取快捷方式菜单
+    getMenuData() {
+      let url = this.getServiceUrl('oa', 'srvsys_user_menu_select', 'select');
+      let req = {
+        serviceName: 'srvsys_user_menu_select',
+        colNames: ['*'],
+        order: [{ colName: 'seq', orderType: 'asc' }]
+      };
+      this.$http.post(url, req).then(response => {
+        let item = response.data.data;
+        console.log('item',item)
+        let newArr = [];
+        for (let i in item) {
+          if (item[i].shortcut_flag == '是') {
+            this.$set(item[i], 'bg', this.bgcolor[i]);
+            newArr.push(item[i]);
+          }
+        }
+        this.menus = newArr;
+      });
+    },
+    lists() {
+      // uni.navigateTo({
+      // 	url:'../list/tabList'
+      // })
+      // this.$Router.push({path:'pages/list/tabList'})
+      this.$Router.push({ name: 'list', params: { id: '2' } });
     }
   }
 };
@@ -185,7 +333,7 @@ page {
     }
 
     .input {
-      height: realSize(59px);
+      height: realSize(50px);
       width: 100%;
       margin-left: realSize(20px);
       margin-right: realSize(20px);
@@ -391,6 +539,7 @@ page {
     .item_content {
       display: flex;
       flex-direction: row;
+      position: relative;
 
       .title {
         width: 36%;
@@ -402,11 +551,13 @@ page {
           font-size: 16px;
           color: rgba(46, 65, 69, 1);
         }
+
         .main {
           font-size: 13px;
           color: rgba(79, 103, 101, 1);
           margin-top: 5px;
         }
+
         .sub {
           width: 60px;
           font-size: 10px;
@@ -433,6 +584,8 @@ page {
         display: flex;
         align-items: center;
         justify-content: center;
+        position: absolute;
+        right: 0;
         color: #ffffff;
         font-size: 14px;
       }
