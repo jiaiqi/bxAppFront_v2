@@ -312,6 +312,11 @@ export default {
 		uni.navigateTo({
 			url:'../form/formitem'
 		})
+	},
+	toDietRecord(){
+		uni.navigateTo({
+			url:'../dietRecord/dietRecord'
+		})
 	}
   }
 };
