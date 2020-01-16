@@ -1,225 +1,181 @@
 <template>
-	<view class="container999" @touchstart="refreshStart" @touchmove="refreshMove" @touchend="refreshEnd">
-		<!-- 刷新组件需搭配scroll-view使用，并在pages.json中添加 "disableScroll":true-->
-		<refresh ref="refresh" @isRefresh='isRefresh'></refresh>
-		<view class='nav'>
-			<!-- #ifdef H5 -->
-				<view style="height: 44px;width: 100%;">边距盒子</view>
-			<!-- #endif -->
-			<!-- 搜索 -->
-		<!-- 	<view class='searchInput999'>
-				<view class='searchBox999'>
-					<image src='/static/icon-search.png' class='search999'></image>
-				</view>
-				<input class='input999' placeholder="输入关键词"></input>
-			</view> -->
-			<!-- 导航栏 agents导航栏标题 -->
-			<navTab ref="navTab" :tabTitle="tabTitle" @changeTab='changeTab'></navTab>
+	<view class="wrap">
+		<view class="topslerr">
+			<liuyuno-tabs :tabData="tabs" :defaultIndex="defaultIndex" @tabClick='tabClick' />
 		</view>
-		<!-- swiper切换 swiper-item表示一页 scroll-view表示滚动视窗 -->
-		<swiper style="min-height: 100vh;" :current="currentTab" @change="swiperTab">
-			<swiper-item v-for="(listItem,listIndex) in list" :key="listIndex">
-				<scroll-view style="height: 100%;" scroll-y="true" @scrolltolower="lower1" scroll-with-animation :scroll-into-view="toView">
-				<view :id="'top'+listIndex" style="width: 100%;height: 180upx;">边距盒子</view>
-				<view class='content'>
-					<view class='card' @click="detail" v-for="(item,index) in listItem" v-if="listItem.length > 0" :key="index">
-						{{item.content}}
+		<view class="underhei"></view>
+		<view class="content-box" >
+			<view @click="detial" class="wrap-headlist" v-for="(item,index) in list" :key="index">
+				<view class="twocontent">
+					<view class="titlebox" >
+						<view class="">
+							<view class="dots" :style="'background:'+colortitle(item.proc_status)" ></view>
+							<view class="titltsfont" ref="afterdiv" >{{item.issue_type}}任务</view>
+						</view>
+						 <view class="dot" :style="'color:'+colortitle(item.proc_status)">已完成</view>
 					</view>
+					<view class="lineunder"></view>
+					<view class="fotsize">
+						<text class="" >任务描述：</text>
+						<text class="" style="line-height: 22px;">{{item.issue_name}}</text>
+						<view class="bottombar">
+							<text>发起时间：{{item.modify_time.substring(0,10)}}</text><text style="opacity: 0;">.........</text><text>发起人：{{(item.modify_user_disp.split('/'))[0]}}</text>
+						</view>
+					</view>
+					
 				</view>
-				<view class='noCard' v-if="listItem.length===0">
-					暂无信息
-				</view>
-				<view style="width: 100%;height: 100upx;opacity:0;">底部占位盒子</view>
-				</scroll-view>
-			</swiper-item>
-		</swiper>
+			</view>
+		</view>
+		<view class="undf">
+			<uni-loading v-if="" :status="status" color="#888" />
+		</view>
 	</view>
 </template>
 
 <script>
-const util = require('../../common/util.js');
-import refresh from '../../components/tablist/refresh.vue';
-import navTab from '../../components/tablist/navTab.vue';
-import tabBar4 from '../../components/tablist/tabBar4.vue';
-export default {
-	components: {refresh,navTab,tabBar4},
-	data() {
-		return {
-			toView:'',//回到顶部id
-			tabTitle:['我的全部','我的申请','待我处理','我已处理'], //导航栏格式 --导航栏组件
-			currentTab: 0, //sweiper所在页
-			pages:[1,1,1,1], //第几个swiper的第几页
-			list: [
-					[{'title':'测试','content':'这是内容','src':'../../static/exam.png'}, 
-					{'title':'测试','content':'这是内容','src':'../../static/exam.png'},
-					{'title':'测试','content':'这是内容','src':'../../static/exam.png'},
-					{'title':'测试','content':'这是内容','src':'../../static/exam.png'}],
-					['a', 'b', 'c', 'd', 'e', 'f'],
-					[],
-					['2233','4234','13144','324244']
-			] //数据格式
-		};
-	},
-	onLoad(e) {
-		
-	},
-	onShow() {},
-	onHide() {},
-	methods: {
-		detail(){
-			uni.navigateTo({
-				url:'../steps/procDetail'
-			})
+	import liuyunoTabs from "@/components/tablist/navTab.vue";
+	import uniLoading from '@/components/loading-more/loading.vue';
+	export default{
+		components:{liuyunoTabs,uniLoading},
+		data(){
+			return{
+				tabs: ['待我处理', '我的全部', '我的申请','我已处理'],
+				defaultIndex:0, //默认显示列
+				status:1, //默认状态
+				list:[],//数据列表
+				valno:true,
+				pageNo: 1,
+				index:0, //当前列表下表
+				rownumber: 10,
+				listindex:['wait','myall','mine','processed']
+			}
 		},
-		toTop(){
-			this.toView = ''
-			setTimeout(()=>{
-				this.toView = 'top' + this.currentTab
-			},10)
+		methods:{
+			tabClick(e) {
+				this.index=e
+				this.list=[]
+				this.status = 1
+				this.getlist(true).then(()=>{
+					this.loadingStatus(this.list.length)
+				})
+			},
+			colortitle(val){
+				switch (val){
+					case '完成':
+						return '#46B6FE'
+						break;
+					default:
+						break;
+				}
+			},
+			loadingStatus(value) {
+				switch (value) {
+					case 0:
+						if(this.valno){
+							this.status = 3
+						}else{
+							this.status = 2
+						}
+						break;
+					case 10:
+						this.status = 0
+						break;
+					default:
+						this.status = 2;
+						break;
+				}
+			},
+			//流程类列表
+		async getlist(value){
+				let url = this.getServiceUrl('oa', "srvoa_issue_info_select", 'select');
+				let proc_data_type= "wait"
+				let req = {
+					"serviceName":"srvoa_issue_info_select",
+					"colNames":["*"],
+					"condition":[],
+					"page":{pageNo: this.pageNo,
+					rownumber: this.rownumber},
+					"order":[],
+					'proc_data_type':this.listindex[this.index]
+				}
+				let	response= await this.$http.post(url, req)
+					let item =response.data.data
+					this.list=item
+					if(value){
+						this.valno=true
+						this.loadingStatus(item.length)
+					}
+			},
+			detial(){
+				uni.navigateTo({
+					url:'../steps/procDetail'
+				})
+			}
 		},
-		changeTab(index){
-			this.currentTab = index;
+		onLoad(){
+			this.getlist(true)
 		},
-		// 其他请求事件 当然刷新和其他请求可以写一起 多一层判断。
-		isRequest() {
-			return new Promise((resolve, reject) => {
-				this.pages[this.currentTab]++
-				var that = this
-				setTimeout(() => {
-					uni.hideLoading()
-					uni.showToast({
-						icon: 'none',
-						title: `请求第${that.currentTab + 1 }个导航栏的第${that.pages[that.currentTab]}页数据成功`
-					})
-					let newData = ['新数据1','新数据2','新数据3']
-					resolve(newData)
-				}, 1000)
-			})
-		},
-		// swiper 滑动
-		swiperTab: function(e) {
-			var index = e.detail.current //获取索引
-			this.$refs.navTab.longClick(index);
-			
-		},
-		// 加载更多 util.throttle为防抖函数
-		lower1: util.throttle(function(e) {
-		console.log(`加载${this.currentTab}`)//currentTab表示当前所在页数 根据当前所在页数发起请求并带上page页数
-		uni.showLoading({
-			title: '加载中',
-			mask:true
-		})
-			this.isRequest().then((res)=>{
-				let tempList = this.list
-				tempList[this.currentTab] = tempList[this.currentTab].concat(res)
-				console.log(tempList)
-				this.list = tempList
-				this.$forceUpdate() //二维数组，开启强制渲染
-			})
-		}, 300),
-		// 刷新touch监听
-		refreshStart(e) {
-			this.$refs.refresh.refreshStart(e);
-		},
-		refreshMove(e){
-			this.$refs.refresh.refreshMove(e);
-		},
-		refreshEnd(e) {
-			this.$refs.refresh.refreshEnd(e);
-		},
-		isRefresh(){
-				setTimeout(() => {
-					uni.showToast({
-						icon: 'success',
-						title: '刷新成功'
-					})
-					this.$refs.refresh.endAfter() //刷新结束调用
-				}, 1000)
+		mounted() {
 		}
 	}
-};
 </script>
 
-<style lang="scss">
-		.container999 {
-	  width: 100vw;
-	  font-size: 28upx;
-	  min-height: 100vh;
-	  overflow: hidden;
-	  color: #6B8082;
-	  position: relative;
-	  background-color: #f6f6f6;
-	}
-	.content {
+<style>
+	.wrap {
 		width: 100%;
-	}
-	
-	.card {
-		width: 90%;
-		height: 170upx;
-		background-color: white;
-		margin: 0 auto 42upx auto;
+		height: 100%;
 		background: #FFFFFF;
-		box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.10);
-		border-radius: 5px;
-		position: relative;
 	}
-	
-	.noCard {
-		width: 90%;
-		height: 200upx;
-		margin: auto;
-		background-color: white;
+	.bottombar{
+		margin: 10px 0 2px 0;
+		text-align: right;
+		white-space: nowrap;
+	}
+	.titlebox{
+		font-size: 28upx;
 		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: #999999;
-		box-shadow: 0 0 10upx 0 rgba(0, 0, 0, 0.10);
-		border-radius: 10upx;
+		justify-content: space-between;
 	}
-	
-	
-	.nav {
+	.titltsfont{
+		display: inline-block; 
+		vertical-align: middle;
+	}
+	.topslerr {
 		position: fixed;
 		left: 0;
-		top: 0;
-		color: white;
+		right: 0;
+		z-index: 1024;
+	}
+	.fotsize{
+		font-size: 25upx;
+		color:#888 ;
+	}
+	.lineunder{
+		margin: 10px 0;
+		height: 1px;
+		width: ;
+		background: #e8e8e8;
+	}
+	.underhei {
+		height: 110upx;
+	}
+	.content-box{
+		padding: 0 30upx;
+	}
+	.wrap-headlist{
 		width: 100%;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		justify-content: flex-start;
-		font-size: 24upx;
-		background-color: #0bc99d;
-		z-index: 996;
+		border-radius: 5px;
+		margin: 40upx 0;
+		box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1); 
+		padding: 18upx;
+		box-sizing: border-box;
 	}
-	
-	.searchInput999 {
-		width: 90%;
-		margin: 0 auto;
-		background: white;
-		border-radius: 30upx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		height: 56upx;
-	}
-	
-	.search999 {
-		width: 32upx;
-		height: 32upx;
-	}
-	
-	.searchBox999 {
-		width: 56upx;
-		height: 56upx;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-	
-	.input999 {
-		color: #999;
-		width: 80%;
+	.dots{
+		display:inline-block; 
+		width: 25upx;
+		height: 25upx;
+		border-radius: 50%;
+		margin-right:14px; 
+		vertical-align: middle;
 	}
 </style>

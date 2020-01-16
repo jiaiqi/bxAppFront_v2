@@ -6,8 +6,7 @@
 let remoteAddress = {
   ssourl: 'http://www.100xsys.cn', // 微信登陆sso 端口
   ssoAddress: 'http://sso.100xsys.cn',
-  serviceAddress: 'http://srvms.100xsys.cn',
-  authAddress: 'http://srvms.100xsys.cn' // 获取公众页面授权地址
+  serviceAddress: 'http://srvms.100xsys.cn', // http://login.100xsys.cn 接口地址
 }
 let ENV = {
   backUrl: remoteAddress.ssourl,   // 授权域名
@@ -20,9 +19,6 @@ let ENV = {
   authorizedLoginSuccess: 'authorized_login_success', // 授权成功,可以直接请求业务数据
   ssoAuthor: remoteAddress.serviceAddress + '/wx/operate/', // sso授权地址
   savewxuser: remoteAddress.ssoAddress + '/wx/savewxuser', // sso保存微信用户
-
-  // http://srvms.100xsys.cn/wx/operate/srvwx_public_page_authorization
-  // savewxuser: remoteAddress.authAddress + '/wx/operate/srvwx_public_page_authorization', // sso保存微信用户
 
   getOpendId: remoteAddress.ssoAddress + '/wx/getOpendId', // sso保存微信用户 /wx/getOpendId
   getSignature: remoteAddress.ssoAddress + '/wx/getSignature', // sso保存微信用户 /wx/getSignature ,
@@ -44,7 +40,6 @@ let ENV = {
   startProc: remoteAddress.serviceAddress + '/bxsys/startProc', // 流程开启
   approval: remoteAddress.serviceAddress + '/bxsys/approval', // 流程开启
   startDataProc: remoteAddress.serviceAddress + '/bxsys/startDataProc', // 流程子开启
-  // add: remoteAddress.serviceAddress + '/bxsys/add', // 新增
   add: remoteAddress.serviceAddress + '/bxsys/operate', // 新增
   update: remoteAddress.serviceAddress + '/bxsys/operate', // 修改
   delete: remoteAddress.serviceAddress + '/bxsys/operate', // 删除

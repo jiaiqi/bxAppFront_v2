@@ -13,8 +13,8 @@
     </view>
     <view class="page_content">
       <view class="menu">
-        <template v-for="(it, i) in menus" v-show="menus.length > 0">
-          <view @click="lists" class="item" :key="'menu_' + i">
+        <template v-for="(it, i) in menus" v-show="menus.length > 0" >
+          <view @click="lists(it.menu_name)" class="item" :key="i">
             <view class="img_view" :style="{ background: it.bg }"></view>
             <!-- <image :src="it.icon" class="image"></image> -->
             <text class="txt">{{ it.menu_name }}</text>
@@ -22,14 +22,14 @@
         </template>
       </view>
       <view class="s_menu">
-        <template v-for="(it, i) in second_menus">
-          <view class="item" :key="'s_menu_' + i">
-            <image :src="it.icon" class="image"></image>
-            <text class="txt">{{ it.txt }}</text>
+        <template v-for="(item, index) in second_menus">
+          <view class="item" :key="index">
+            <image :src="item.icon" class="image"></image>
+            <text class="txt">{{ item.txt }}</text>
           </view>
         </template>
       </view>
-      <view class="ad">
+      <view class="ad" @click="fromitem">
         <view class="ad_btn">
           <text class="title">教资面试课上线</text>
           <text class="sub_title">老用户现实立减100元</text>
@@ -39,7 +39,7 @@
     </view>
     <scroll-view scroll-x="true" class="slider">
       <template v-for="(it, i) in records">
-        <view class="item" :key="'slider_item_' + i" :style="{ background: it.bg, marginRight: i === records.length - 1 ? '15px' : '0px' }">
+        <view class="item" :key="i" :style="{ background: it.bg, marginRight: i === records.length - 1 ? '15px' : '0px' }">
           <view class="item_content">
             <view class="title">
               <text class="first">{{ it.title }}</text>
@@ -53,6 +53,7 @@
       </template>
     </scroll-view>
     <button type="primary" open-type="getUserInfo" @getuserinfo="getuserinfo">授权管理</button>
+    <button type="primary" @tap="toDietRecord">饮食记录</button>
   </view>
 </template>
 
@@ -144,10 +145,13 @@ export default {
   methods: {
     getuserinfo(e) {
       // 获取用户信息
+      // #ifdef MP-WEIXIN
       console.log('同意用户信息授权', e.detail.rawData);
       if (e.detail.rawdata) {
+        console.log('账号信息',e.detail.rawdata)
         uni.setStorageSync('userInfo', e.detail.rawdata);
       }
+      // #endif
     },
     openSetting() {
       // 打开权限设置页面
@@ -236,6 +240,7 @@ export default {
                   //匿名登录
                   uni.setStorageSync('login_user_info', resData.login_user_info); //匿名登录信息
                   that.openid = resData.login_user_info.openid;
+                  that.toAccountLogin()
                 } else {
                   uni.setStorageSync('login_user_info', null);
                 }
@@ -257,8 +262,9 @@ export default {
       // 账号登录
       uni.showModal({
         title: '提示',
-        content: '点击确定跳转到登录页面?',
-        showCancel: false,
+        content: '登录状态过期或未登录,是否跳转到登录页面?',
+        // showCancel: false,
+        confirmText:'登录',
         success: res => {
           if (res.confirm) {
             uni.navigateTo({
@@ -289,13 +295,24 @@ export default {
         this.menus = newArr;
       });
     },
-    lists() {
-      // uni.navigateTo({
-      // 	url:'../list/tabList'
-      // })
-      // this.$Router.push({path:'pages/list/tabList'})
-      this.$Router.push({ name: 'list', params: { id: '2' } });
-    }
+    lists(val) {
+		//后台未配置 临时跳转
+		if(val=="项目跟踪"){
+			uni.navigateTo({
+				url:'../list/treeList'
+			})
+		}else{
+			uni.navigateTo({
+				url:'../list/tabList'
+			})
+		}
+      // this.$Router.push({ name: 'list', params: { id: '2' } });
+    },
+	fromitem(){
+		uni.navigateTo({
+			url:'../form/formitem'
+		})
+	}
   }
 };
 </script>
@@ -355,7 +372,6 @@ page {
   .header_content {
     display: flex;
     flex-direction: row;
-
     .left {
       display: flex;
       flex-direction: column;

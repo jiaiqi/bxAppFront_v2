@@ -1,14 +1,26 @@
 <template>
 	<view>
-		<!-- <uni-section title="我的进度" type="line"></uni-section> -->
-		<!-- <view class="example-body">
-			<uni-steps :options="list1" active-color="#007AFF" :active="active" />
-		</view> -->
+		
 		<uni-section title="处理进度" type="line"></uni-section>
 		<view class="example-body">
 			<uni-steps :options="list2" active-color="#007AFF" :active="active" direction="column" />
 		</view>
-		<view class="word-btn" hover-class="word-btn--hover" :hover-start-time="20" :hover-stay-time="70" @click="change"><text class="word-btn-white">下一步</text></view>
+		<view class="bg-white padding">
+			<view class="cu-steps">
+				<view class="cu-item" :class="index>num?'':'text-blue'" v-for="(item,index) in numList" :key="index">
+					<text class="num" :class="index==2?'err':''" :data-index="index + 1"></text> {{item.name}}
+				</view>
+			</view>
+		</view>
+		<!-- <view class="word-btn" hover-class="word-btn--hover" :hover-start-time="20" :hover-stay-time="70" @click="change"><text class="word-btn-white">下一步</text></view> -->
+		<view class="cu-form-group margin-top" v-for="(item,index) in list" :key="index">
+			<view class="title">{{item.title}}</view>
+			<input disabled="disabled" :value="item.content" name="input"></input>
+		</view>
+		<view class="cu-form-group align-start">
+			<view class="title">文本框</view>
+			<textarea  disabled="disabled" maxlength="-1" @input="" ></textarea>
+		</view>
 	</view>
 </template>
 
@@ -22,6 +34,31 @@
 		},
 		data() {
 			return {
+				num:2,
+				numList: [{
+					name: '开始'
+				}, {
+					name: '等待'
+				}, {
+					name: '错误'
+				}, {
+					name: '完成'
+				}, ],
+				list:[
+					{'title':'编号','content':'h'},
+					{'title':'名称','content':'h'},
+					{'title':'类型','content':'h'},
+					{'title':'项目','content':'h'},
+					{'title':'特性','content':'h'},
+					{'title':'重要程度','content':'h'},
+					{'title':'紧急程度','content':'h'},
+					{'title':'期望发布时间','content':'h'},
+					{'title':'需求问题附件','content':'h'},
+					{'title':'创建人','content':'h'},
+					{'title':'创建时间','content':'h'},
+					{'title':'修改人','content':'h'},
+					{'title':'修改时间','content':'h'}
+				],
 				active: 1,
 				list1: [{
 					title: '事件一'
@@ -33,23 +70,26 @@
 					title: '事件四'
 				}],
 				list2: [{
-					title: '买家下单',
+					title: '申请',
 					desc: '2018-11-11'
 				}, {
-					title: '卖家发货',
+					title: '业务分析',
 					desc: '2018-11-12'
 				}, {
-					title: '买家签收',
+					title: '业务实施开发',
 					desc: '2018-11-13'
 				}, {
-					title: '交易完成',
+					title: '业务审核',
 					desc: '2018-11-14'
+				},{
+					title: '提交人确认',
+					desc: '2018-11-13'
 				}]
 			}
 		},
 		methods: {
 			change() {
-				if (this.active < this.list1.length - 1) {
+				if (this.active < this.list2.length - 1) {
 					this.active += 1
 				} else {
 					this.active = 0

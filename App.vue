@@ -13,5 +13,12 @@
 </script>
 
 <style>
+	@import "colorui/main.css";
+	@import "colorui/icon.css";
 	/*每个页面公共css */
+	#app,body,html,uni-page-body{
+		height: 100%;
+		width: 100%;
+	}
+
 </style>

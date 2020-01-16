@@ -1,11 +1,13 @@
 <template>
-	<view class="navTabBox">
-		<view class="longTab">
-			<scroll-view scroll-x="true" style="white-space: nowrap; display: flex" scroll-with-animation :scroll-left="tabLeft">
-				<view class="longItem" :style='"width:"+isWidth+"px"' :data-index="index" :class="index===tabClick?'click':''" v-for="(item,index) in tabTitle" :key="index" :id="'id'+index" @click="longClick(index)">{{item}}</view>
-				<view class="underlineBox" :style='"transform:translateX("+isLeft+"px);width:"+isWidth+"px"'>
-					<view class="underline"></view>
+	<view class="tab-box" id="tab-box" v-if="tabList.length > 0">
+		<view class="horizontal">
+			<scroll-view :scroll-x="true" style="white-space: nowrap; display: flex;justify-content: space-between;" scroll-with-animation :scroll-left="slider.scrollLeft">
+				<view class="" style="display: flex;justify-content: space-between;">
+					<block v-for="(item, index) in tabList" :key="index" >
+					<view class="item" :class="{ active: activeIndex === index }" :id="'tab_'+index" @click="tabClick(index)">{{ item.text || item }}</view>
+					</block>
 				</view>
+				<view class="underline" :style="'transform:translateX(' + slider.left + 'px);width:' + slider.width + 'px'"></view>
 			</scroll-view>
 		</view>
 	</view>
@@ -13,107 +15,141 @@
 
 <script>
 	export default {
-		name: 'navTab',
+		name: 'liuyuno-tabs',
 		props: {
-			tabTitle: {
+			tabData: {
 				type: Array,
-				default: []
-			}
-
+				default: () => []
+			},
+			defaultIndex: {
+				type: Number,
+				default: 0
+			},
+			underLinePadding: {
+				type: Number,
+				default: 10
+			},
 		},
 		data() {
 			return {
-				tabClick: 0, //导航栏被点击
-				isLeft: 0, //导航栏下划线位置
-				isWidth: 0, //每个导航栏占位
-				tabLeft:0
+				tabList: [],
+				tabListSlider: [],
+				box: {
+					left: 0,
+					right: 0,
+					top: 0,
+					width: 0,
+					height: 0,
+					bottom: 0,
+				},
+				slider: {
+					left: 0,
+					width: 0,
+					scrollLeft: 0
+				},
+				activeIndex: 0
 			};
 		},
-		created() {
-			var that = this
-			// 获取设备宽度
-			uni.getSystemInfo({
-				success(e) {
-					if(that.tabTitle.length<= 5 ){
-						that.isWidth = e.windowWidth / that.tabTitle.length //宽度除以导航标题个数=一个导航所占宽度	
-					} else {
-						that.isWidth = e.windowWidth / 5 
-					}
-				}
-			})
+		watch: {
+			tabData(value) {
+				this.tabList = value;
+				setTimeout(() => {
+					this.updateTabWidth();
+				}, 0);
+			},
+		},
+		mounted() {
+			this.tabList = this.tabData;
+			this.activeIndex = this.defaultIndex;
+			
+			setTimeout(() => {
+				
+				const query = uni.createSelectorQuery().in(this);
+				query.select('.tab-box').boundingClientRect((res) => {
+					this.box = res;
+					this.updateTabWidth();
+				}).exec();
+				
+			}, 0);
+			
 		},
 		methods: {
-			// 导航栏点击
-			longClick(index){
-				    if(this.tabTitle.length>5){
-						var tempIndex = index - 2;
-						tempIndex = tempIndex<=0 ? 0 : tempIndex;
-						this.tabLeft = (index-2) * this.isWidth //设置下划线位置
+			
+			tabClick(index) {
+				this.activeIndex = index;
+				this.tabToIndex(index);
+				this.$emit('tabClick', index);
+			},
+			
+			tabToIndex(index) {
+				let _slider = this.tabListSlider[index];
+
+				this.slider = {
+					left: _slider.left + this.underLinePadding,
+					width: _slider.width - this.underLinePadding * 2,
+					scrollLeft: _slider.scrollLeft,
+				}
+			},
+			
+			updateTabWidth(index = 0) {
+				let data = this.tabList;
+				
+				if (data.length == 0) return false;
+				
+				const query = uni.createSelectorQuery().in(this);
+				
+				query.select('#tab_' + index).boundingClientRect((res) => {
+					let _prev_slider = this.tabListSlider[index - 1];
+					this.tabListSlider[index] = {
+						left: res.left - this.box.left,
+						width: res.width,
+						scrollLeft: res.left - this.box.left - (_prev_slider ? _prev_slider.width : 0),
 					}
-					this.tabClick = index //设置导航点击了哪一个
-					this.isLeft = index * this.isWidth //设置下划线位置
-					this.$emit('changeTab', index);//设置swiper的第几页
-					// this.$parent.currentTab = index //设置swiper的第几页
+
+					if (this.activeIndex == index) {
+						this.tabToIndex(this.activeIndex);
+					}
+
+					index++;
+					if (data.length > index) {
+						this.updateTabWidth(index);
+					}
+				}).exec();
 			}
 		}
 	}
 </script>
 
-<style lang="scss">
-	.navTabBox {
-		width: 100vw;
-		color: rgba(255, 255, 255, 0.50);
-		.click {
-			color: white;
+<style lang="less">
+	.tab-box {
+		width: 100%;
+		color: rgba(0, 0, 0, 0.8);
+		display: flex;
+		
+		height: 90upx;
+		background: #fff;
+		font-size: 28upx;
+		box-shadow: 0 1px 5px rgba(0, 0, 0, 0.06);
+		position: relative;
+		z-index: 10;
+		overflow: hidden;
+		.active {
+			color: #e54d42;
 		}
-		.longTab {
+		.horizontal {
 			width: 100%;
-			.longItem{ 
-				height: 90upx; 
+			.item {
 				display: inline-block;
-				line-height: 90upx;
 				text-align: center;
+				padding: 0 30upx;
+				height: 86upx;
+				line-height: 90upx;
 			}
-			.underlineBox {
-				height: 3px;
-				width: 20%;
-				display: flex;
-				align-content: center;
-				justify-content: center;
+			.underline {
+				height: 4upx;
+				background-color: #e54d42;
+				border-radius: 3px;
 				transition: .5s;
-				.underline {
-					width: 84upx;
-					height: 4px;
-					background-color: white;
-				}
-			}
-		}
-		.shortTab {
-			width: 100%;
-			.navTab {
-				display: flex;
-				width: 100%;
-				height: 90upx;
-				position: relative;
-				.navTabItem {
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					width: 100%;
-					font-size: 28upx;
-				}
-			}
-			.underlineBox {
-				height: 3px;
-				display: flex;
-				align-content: center;
-				justify-content: center;
-				transition: .5s;
-				.underline {
-					width: 84upx;
-					height: 3px;
-					background-color: white;
-				}
 			}
 		}
 	}

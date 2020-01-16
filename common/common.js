@@ -124,6 +124,23 @@ export default {
       let footerBtns = btns.filter((item) => item.permission === true && (item.button_type === 'edit' || item.button_type === 'delete' || item.button_type === 'deletedraft' || item.button_type === 'closeproc' || item.button_type === 'deleteproc' || item.button_type === 'startproc' || item.button_type === 'customize'))
       return footerBtns
     }
+	// Vue.prototype.loadingStatus=function(value){
+	// 	switch (value) {
+	// 		case 0:
+	// 			if(this.valno){
+	// 				this.status = 3
+	// 			}else{
+	// 				this.status = 2
+	// 			}
+	// 			break;
+	// 		case 10:
+	// 			this.status = 0
+	// 			break;
+	// 		default:
+	// 			this.status = 2;
+	// 			break;
+	// 	}
+	// }
     Vue.prototype.selectOne = async function (srv, cond) { // 查询
       let self = this
 
