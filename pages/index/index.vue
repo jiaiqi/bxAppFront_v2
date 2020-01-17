@@ -52,8 +52,9 @@
         </view>
       </template>
     </scroll-view>
-    <button type="primary" open-type="getUserInfo" @getuserinfo="getuserinfo">授权管理</button>
+    <!-- <button type="primary" open-type="getUserInfo" @getuserinfo="getuserinfo">授权管理</button> -->
     <button type="primary" @tap="toDietRecord">饮食记录</button>
+    <!-- <button type="primary" @click="openSetting">授权</button> -->
   </view>
 </template>
 
@@ -66,6 +67,7 @@ export default {
   data() {
     return {
       openid: '',
+      userInfoAuth:'', //是否授权访问用户信息
       swiperList: [
         {
           img: 'https://ossweb-img.qq.com/images/lol/web201310/skin/big25011.jpg',
@@ -189,10 +191,11 @@ export default {
     checkAuthorization() {
       // 查看是否授权
       // #ifdef MP-WEIXIN
+      let that = this
       uni.authorize({
         scope: 'scope.userInfo',
         success(res) {
-          console.log('获取用户信息授权成功', res);
+          that.userInfoAuth = true
           // 获取用户信息
           uni.getUserInfo({
             provider: 'weixin',
@@ -202,10 +205,25 @@ export default {
           });
         },
         fail(errMsg) {
-          console.log('获取用户信息授权失败', errMsg);
+          that.userInfoAuth = false
+          console.log(errMsg);
+          let toAuthPageTimes = uni.getStorageSync('toAuthPageTimes')
+          console.log('toAuthPageTimes',toAuthPageTimes)
+          if(!toAuthPageTimes){
+            uni.setStorageSync('toAuthPageTimes',0)
+          }
+          if(toAuthPageTimes==0||parseInt(toAuthPageTimes)%4===0){
+            // 记录跳转到授权页面的次数，如果未跳转过则跳转
+            uni.navigateTo({
+              url:'../authorization/authorization'
+            })
+          }else{
+            toAuthPageTimes = parseInt(toAuthPageTimes)
+            toAuthPageTimes++
+            uni.setStorageSync('toAuthPageTimes',toAuthPageTimes)
+          }
         }
       });
-
       // #endif
     },
     toLogin() {
@@ -315,7 +333,8 @@ export default {
 	},
 	toDietRecord(){
 		uni.navigateTo({
-			url:'../dietRecord/dietRecord'
+			url:'../dietRecord/dietSelect'
+			// url:'../dietRecord/dietRecord'
 		})
 	}
   }

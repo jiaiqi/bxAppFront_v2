@@ -10,7 +10,7 @@
     }, {
       "path": "pages/login/login",
       "style": {
-        "navigationBarTitleText": "登陆",
+        "navigationBarTitleText": "登录",
         "navigationBarBackgroundColor": "#0bc99d"
       }
     },
@@ -57,10 +57,24 @@
       }
     }
 
-  ],
+      ,{
+            "path" : "pages/dietRecord/dietSelect",
+            "style" : {
+              "navigationBarTitleText": "选择食物",
+              "navigationBarBackgroundColor": "#0bc99d"
+            }
+        }
+        ,{
+            "path" : "pages/authorization/authorization",
+            "style" : {
+              "navigationBarTitleText": "",
+              "navigationBarBackgroundColor": "#fff"
+            }
+        }
+    ],
   "globalStyle": {
-    "navigationBarTitleText": "uni-app",
-    "navigationBarBackgroundColor": "#F8F8F8",
+    "navigationBarTitleText": "百想软件开发平台",
+    "navigationBarBackgroundColor": "#0bc99d",
     "backgroundColor": "#F8F8F8"
   }
   // "tabBar": {
