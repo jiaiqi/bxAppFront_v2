@@ -16,9 +16,12 @@
 	@import "colorui/main.css";
 	@import "colorui/icon.css";
 	/*每个页面公共css */
-	#app,body,html,uni-page-body{
-		height: 100%;
-		width: 100%;
+	#app,uni-page-body,uni-page-wrapper{
+		background: #FFFFFF !important;
+	}
+	html,body{
+		height: auto;
+		background: #FFFFFF !important;
 	}
 
 </style>

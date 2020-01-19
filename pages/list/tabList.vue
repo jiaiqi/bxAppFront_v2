@@ -1,18 +1,18 @@
 <template>
-	<view class="wrap">
+	<view class="wrap">  
 		<view class="topslerr">
 			<liuyuno-tabs :tabData="tabs" :defaultIndex="defaultIndex" @tabClick='tabClick' />
 		</view>
 		<view class="underhei"></view>
-		<view class="content-box" >
-			<view @click="detial" class="wrap-headlist" v-for="(item,index) in list" :key="index">
+		<view class="content-box">
+			<view @click="detial(item.proc_instance_no)" class="wrap-headlist" v-for="(item,index) in list" :key="index">
 				<view class="twocontent">
 					<view class="titlebox" >
 						<view class="">
-							<view class="dots" :style="'background:'+colortitle(item.proc_status)" ></view>
+							<view class="dots" :style="'background:'+(colortitle(item.proc_status)).split('/')[0]" ></view>
 							<view class="titltsfont" ref="afterdiv" >{{item.issue_type}}任务</view>
 						</view>
-						 <view class="dot" :style="'color:'+colortitle(item.proc_status)">已完成</view>
+						 <view class="dot" :style="'color:'+(colortitle(item.proc_status)).split('/')[0]">{{(colortitle(item.proc_status)).split('/')[1]}}</view>
 					</view>
 					<view class="lineunder"></view>
 					<view class="fotsize">
@@ -25,10 +25,9 @@
 					
 				</view>
 			</view>
-		</view>
-		<view class="undf">
 			<uni-loading v-if="" :status="status" color="#888" />
 		</view>
+			
 	</view>
 </template>
 
@@ -39,6 +38,7 @@
 		components:{liuyunoTabs,uniLoading},
 		data(){
 			return{
+				pro_text:'',
 				tabs: ['待我处理', '我的全部', '我的申请','我已处理'],
 				defaultIndex:0, //默认显示列
 				status:1, //默认状态
@@ -47,24 +47,35 @@
 				pageNo: 1,
 				index:0, //当前列表下表
 				rownumber: 10,
-				listindex:['wait','myall','mine','processed']
+				listindex:['wait','myall','mine','processed'],
+				service_name:''
 			}
 		},
 		methods:{
 			tabClick(e) {
 				this.index=e
 				this.list=[]
-				this.status = 1
-				this.getlist(true).then(()=>{
+				this.status=this.pageNo= 1
+				this.getlist(true,'pull-down').then(()=>{
 					this.loadingStatus(this.list.length)
 				})
 			},
 			colortitle(val){
 				switch (val){
 					case '完成':
-						return '#46B6FE'
+						return '#46B6FE/已完成'
+						break;
+					case "待业务开发实施":
+						return '#09F175/待实施'
+						break;
+					case "待业务分析":
+						return '#e6b011/待分析'
+						break;
+					case "待业务审核":
+						return '#9de65acc/待审核'
 						break;
 					default:
+						return `#e2a06c/${val}`
 						break;
 				}
 			},
@@ -85,12 +96,34 @@
 						break;
 				}
 			},
+			//下拉刷新
+			// pull-down
+			onPullDownRefresh() {
+					let _self =this
+					_self.pageNo=1
+					setTimeout(function() {
+						uni.stopPullDownRefresh();
+						_self.getlist(true,'pull-down')
+					}, 1000);
+				},
+				// pull-up
+			onReachBottom() {
+					let _self = this
+					_self.status = 1
+					_self.pageNo++
+					uni.showNavigationBarLoading()
+					setTimeout(function() {
+						_self.getlist(false,'pull-up')
+						uni.hideNavigationBarLoading()
+					}, 1000);
+				},
 			//流程类列表
-		async getlist(value){
-				let url = this.getServiceUrl('oa', "srvoa_issue_info_select", 'select');
+		async getlist(value,status){
+			console.log( this.service_name)
+				let url = this.getServiceUrl('oa', this.service_name, 'select');
 				let proc_data_type= "wait"
 				let req = {
-					"serviceName":"srvoa_issue_info_select",
+					"serviceName":this.service_name,
 					"colNames":["*"],
 					"condition":[],
 					"page":{pageNo: this.pageNo,
@@ -100,20 +133,28 @@
 				}
 				let	response= await this.$http.post(url, req)
 					let item =response.data.data
-					this.list=item
+					console.log(item)
+					if(status=="pull-down"){
+						this.list=item
+					}else{
+						this.valno=false
+						this.loadingStatus(item.length)
+						this.list=this.list.concat(item)
+					}
 					if(value){
 						this.valno=true
 						this.loadingStatus(item.length)
 					}
 			},
-			detial(){
+			detial(val){
 				uni.navigateTo({
-					url:'../steps/procDetail'
+					url:'../steps/procDetail?pro='+val
 				})
 			}
 		},
-		onLoad(){
-			this.getlist(true)
+		onLoad(option){
+			this.service_name=(option.val)
+			this.getlist(true,'pull-down')
 		},
 		mounted() {
 		}
@@ -123,8 +164,8 @@
 <style>
 	.wrap {
 		width: 100%;
-		height: 100%;
-		background: #FFFFFF;
+		/* height: 100%; */
+		background: #FFFFFF !important;
 	}
 	.bottombar{
 		margin: 10px 0 2px 0;
@@ -144,7 +185,7 @@
 		position: fixed;
 		left: 0;
 		right: 0;
-		z-index: 1024;
+		z-index: 1;
 	}
 	.fotsize{
 		font-size: 25upx;

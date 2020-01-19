@@ -7,8 +7,16 @@ let remoteAddress = {
   ssourl: 'http://www.100xsys.cn', // 微信登陆sso 端口
   ssoAddress: 'http://sso.100xsys.cn',
   serviceAddress: 'http://srvms.100xsys.cn', // http://login.100xsys.cn 接口地址
+  
 }
 let ENV = {
+  
+  
+  
+  
+  /**
+   * 新旧api 分割线—————————————————————————————————————————————————————————— old 
+   * */
   backUrl: remoteAddress.ssourl,   // 授权域名
   serverURL: remoteAddress.serviceAddress + '/mvpages',   // 后台地址
   refuseCode: '0111',   // 后台拒绝识别码

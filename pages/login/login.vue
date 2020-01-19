@@ -30,9 +30,10 @@ export default {
     if (option.openid) {
       this.openid = option.openid;
     }
-
+    
   },
   methods: {
+    
     toLogin() {
       let url = '';
       // #ifdef MP-WEIXIN
@@ -56,28 +57,36 @@ export default {
       });
       // #endif
       // #ifdef H5
-      url = this.getServiceUrl('sso', 'srvuser_login', 'operate');
-      let req = [{ serviceName: 'srvuser_login', data: [{ user_no: this.user_no, pwd: this.password }] }];
-      this.$http.post(url, req).then(res => {
-        console.log('res.data:', res.data);
-        if (res.data.resultCode === 'SUCCESS') {
-          let resData = res.data.response[0].response;
-          let expire_timestamp = parseInt(new Date().getTime() / 1000) + resData.expire_time; //过期时间的时间戳(秒数)
-          uni.setStorageSync('is_login', 'true'); // 登录状态
-          uni.setStorageSync('bx_auth_ticket', resData.bx_auth_ticket);
-          uni.setStorageSync('expire_time', resData.expire_time); // 过期间隔
-          uni.setStorageSync('expire_timestamp', expire_timestamp); // 过期时间
-          uni.setStorageSync('login_user_info', resData.login_user_info); //登录信息
-          uni.navigateTo({
-            url: '../index/index'
-          });
-        } else {
-          uni.setStorageSync('is_login', 'false'); // 登录状态
-          uni.showToast({
-            content: res.data.resultMessage
-          });
-        }
-      });
+      // 浏览器内登录
+      const isWeixin = this.isWeixinClient();
+      if (isWeixin) {
+        // 如果在微信环境 即公众号
+        
+      } else {
+        // 浏览器环境
+        url = this.getServiceUrl('sso', 'srvuser_login', 'operate');
+        let reqs = [{ serviceName: 'srvuser_login', data: [{ user_no: this.user_no, pwd: this.password }] }];
+        this.$http.post(url, reqs).then(res => {
+          console.log('res.data:', res.data);
+          if (res.data.resultCode === 'SUCCESS') {
+            let resData = res.data.response[0].response;
+            let expire_timestamp = parseInt(new Date().getTime() / 1000) + resData.expire_time; //过期时间的时间戳(秒数)
+            uni.setStorageSync('is_login', true); // 登录状态
+            uni.setStorageSync('bx_auth_ticket', resData.bx_auth_ticket);
+            uni.setStorageSync('expire_time', resData.expire_time); // 过期间隔
+            uni.setStorageSync('expire_timestamp', expire_timestamp); // 过期时间
+            uni.setStorageSync('login_user_info', resData.login_user_info); //登录信息
+            uni.navigateTo({
+              url: '../index/index'
+            });
+          } else {
+            uni.setStorageSync('is_login', false); // 登录状态
+            uni.showToast({
+              content: res.data.resultMessage
+            });
+          }
+        });
+      }
       // #endif
     },
     go_forget() {

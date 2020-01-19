@@ -2,7 +2,6 @@
 	<view class="swiperContent">
 		<swiper  @change="change"
 		@animationfinish="animationfinish"
-		:indicator-dots="indicatorDots"
 		:indicator-active-color="indicatorActiveColor"
 		:indicator-color="indicatorColor"
 		:autoplay="(autoplay && flag)"
@@ -22,17 +21,17 @@
 			<swiper-item class="swiper-item"  v-for="(item,index) in swiperList" :key="index" :class="(cardCur==index && displayMultipleItems ==1 && !vertical &&  !fullScreen)?'cur':''"  @tap="clickItem(index)">
 				<view v-if="item[imageKey] && !item[videoKey]">
 					<image :src="item[imageKey]"  :style="{'height':swiperHeight+'px'}"></image>
-				    <text v-if="textTip" class="swiperText" :style="{
+				  <!--  <text v-if="textTip" class="swiperText" :style="{
 						'bottom':(swiperType?(textStyleBottom+12):textStyleBottom)+'%',
 						'right':textStyleRight+'%',
 						'color':textStyleColor,
 						'background':textStyleBgcolor,
 						'font-size':textStyleSize+'upx'
-					}">{{item[textKey]}}</text>
+					}">{{item[textKey]}}</text> -->
 				</view>
-				<view v-if="item[videoKey]">
-				<video :src="item[videoKey]" @play="play" @pause="pause" :style="{'height':swiperHeight+'px'}" autoplay loop muted :autoplay="videoAutoplay" objectFit="cover"></video>
-				</view>
+				<!-- <view v-if="item[videoKey]"> -->
+				<!-- <video :src="item[videoKey]" @play="play" @pause="pause" :style="{'height':swiperHeight+'px'}" autoplay loop muted :autoplay="videoAutoplay" objectFit="cover"></video> -->
+				<!-- </view> -->
 			</swiper-item>
 		</swiper>
 	</view>
@@ -211,7 +210,7 @@
 .cardSwiper .swiper-item view{
 	width: 100%;
 	display: block;
-	height: 100%;
+	height: 128px !important;
 	border-radius: 10upx;
 	transform: scale(0.93,0.8);
 	opacity: 0.7;
@@ -248,5 +247,6 @@
 } 
 .swiperContent{
 	width:100%;
+	height: 50px !important;
 }
 </style>

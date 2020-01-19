@@ -939,7 +939,7 @@ button.cuIcon.lg {
 .cu-progress {
 	overflow: hidden;
 	height: 28upx;
-	background-color: #ebeef5;
+	background-color: #d8d8d8;
 	display: inline-flex;
 	align-items: center;
 	width: 100%;
@@ -952,10 +952,11 @@ button.cuIcon.lg {
 
 .cu-progress.xs {
 	height: 10upx;
+	border-radius: 5px;
 }
 
 .cu-progress.sm {
-	height: 20upx;
+	height: 10upx;
 }
 
 .cu-progress view {
@@ -3424,7 +3425,7 @@ scroll-view.cu-steps .cu-item {
 }
 
 .bg-green {
-	background-color: #39b54a;
+	background-color: rgba(110,220,94,0.7);
 	color: #ffffff;
 }
 

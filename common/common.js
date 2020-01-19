@@ -78,9 +78,11 @@ export default {
     }
     Vue.prototype.isWeixinClient = function () {
       // 判断是否当前环境是微信
+      // #ifdef H5
       let ua = navigator.userAgent.toLowerCase()
       let isWeixin = ua.indexOf('micromessenger') !== -1
       if (isWeixin) { return true } else { return false }
+      // #endif
     }
     Vue.prototype.getQueryString = function (name) {
       var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')

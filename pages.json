@@ -33,6 +33,7 @@
       "style": {
         "navigationBarTitleText": "列表",
         "navigationBarBackgroundColor": "#0bc99d"
+        
       }
     },
     {
@@ -43,35 +44,36 @@
       }
     },
     {
-      "path": "pages/steps/procDetail",
-      "style": {
-        "navigationBarTitleText": "流程详情",
-        "navigationBarBackgroundColor": "#0bc99d"
-      }
-    },
-    {
       "path": "pages/dietRecord/dietRecord",
       "style": {
         "navigationBarTitleText": "饮食记录",
         "navigationBarBackgroundColor": "#0bc99d"
       }
-    }
+    },
+    {
+      "path": "pages/steps/procDetail",
+      "style": {
+        "navigationBarTitleText": "流程详情",
+        "navigationBarBackgroundColor": "#0bc99d"
+      }
+    }, {
+      "path": "pages/dietRecord/dietSelect",
+      "style": {
 
-      ,{
-            "path" : "pages/dietRecord/dietSelect",
-            "style" : {
-              "navigationBarTitleText": "选择食物",
-              "navigationBarBackgroundColor": "#0bc99d"
-            }
-        }
-        ,{
-            "path" : "pages/authorization/authorization",
-            "style" : {
-              "navigationBarTitleText": "",
-              "navigationBarBackgroundColor": "#fff"
-            }
-        }
-    ],
+        "navigationBarTitleText": "选择食物",
+        "navigationBarBackgroundColor": "#0bc99d"
+
+      }
+
+    },
+    {
+      "path": "pages/authorization/authorization",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationBarBackgroundColor": "#fff"
+      }
+    }
+  ],
   "globalStyle": {
     "navigationBarTitleText": "百想软件开发平台",
     "navigationBarBackgroundColor": "#0bc99d",
