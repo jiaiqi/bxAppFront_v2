@@ -1,5 +1,6 @@
 <template>
   <view class="page_edu">
+    <view class="status_bar"><!-- 这里是状态栏 --></view>
     <view class="page_edu_header">
       <view class="header">
         <image src="/static/icon_main.png" class="btn"></image>
@@ -13,8 +14,8 @@
     </view>
     <view class="page_content">
       <view class="menu">
-        <template   v-for="(it, i) in menus"  v-show="menus.length > 0" >
-          <view class="item" @click="lists(it.menu_no)" :key="i" >
+        <template v-for="(it, i) in menus" v-show="menus.length > 0">
+          <view class="item" @click="lists(it.menu_no)" :key="i">
             <view class="img_view" :style="{ background: it.bg }"></view>
             <!-- <image :src="it.icon" class="image"></image> -->
             <text class="txt">{{ it.menu_name }}</text>
@@ -54,21 +55,21 @@
     </scroll-view>
     <!-- <button type="primary" open-type="getUserInfo" @getuserinfo="getuserinfo">授权管理</button> -->
     <button type="primary" @tap="toDietRecord">饮食记录</button>
-    <!-- <button type="primary" @click="openSetting">授权</button> -->
+    <!-- #ifdef APP-PLUS -->
+    <button type="primary" @click="openSetting">授权设置</button>
+    <!-- #endif -->
   </view>
 </template>
 
 <script>
 import bwSwiper from '@/components/bw-swiper/bw-swiper.vue';
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 export default {
   components: {
     bwSwiper
   },
-  computed:{
-    ...mapGetters([
-      'getLoginState',
-    ])
+  computed: {
+    ...mapGetters(['getLoginState'])
   },
   data() {
     return {
@@ -148,38 +149,36 @@ export default {
   },
   onLoad() {
     const clientInfo = this.judgeClientEnviroment();
-    const client_env = clientInfo.client_env;
-    const client_type = clientInfo.client_type;
-    console.log('client_env:', client_env, '\nclient_type:', client_type);
+    console.log('client_env:', clientInfo.client_env, '\nclient_type:', clientInfo.client_type);
   },
   onShow() {
-    this.checkLoginStatus(); //检测登录状态
-    
-   this.getMenuData();
-     this.saveWxUser();
-    // 主动判断环境逻辑
-    
-    this.checkAuthorization(); // 检测是否授权读取用户信息
+    this.initLogin();
   },
   methods: {
     initLogin() {
       let that = this;
-      let code = this.$route.query.code;
+      let code = null;
+      // #ifdef H5
+      code = this.$route.query.code;
+      // #endif
       let isLogin = uni.getStorageSync('is_login');
-      console.log('登录状态:', isLogin);
-      let authorState = uni.getStorageSync('author_state');
+      console.log('是否绑定账号:', isLogin);
       let isWeixinClient = this.isWeixinClient();
-      if (isWeixinClient && authorState) {
-        // 公众号环境 授权登录 已授权
-        that.getMenuData();
-      } else if (isWeixinClient && !authorState) {
-        //公众号环境 未授权
-        if (code) {
+      const client_env = uni.getStorageSync('client_env');
+      console.log('是否微信环境', isWeixinClient);
+      if (isWeixinClient) {
+        //微信环境(小程序或者公众号)
+        if (code || client_env === 'wxmp') {
           // 已经得到code,进行验证登录
+          console.log('已获取到code,即将进行验证登录');
           this.saveWxUser();
-        } else {
-          // 获取授权
+          that.getMenuData();
+        } else if (!code && client_env !== 'wxmp') {
+          //公众号 未授权 -> 获取授权
+          console.log('未发现code,尝试获取重定向链接');
+          // #ifdef H5
           that.getAuthorized();
+          // #endif
         }
       } else if (!isWeixinClient) {
         // 非微信环境(H5或APP)
@@ -216,9 +215,7 @@ export default {
       // #ifdef APP-PLUS
       client_env = 'app';
       // #endif
-
       let client_type = '';
-      // #ifdef APP-PLUS
       switch (uni.getSystemInfoSync().platform) {
         case 'android':
           console.log('运行Android上');
@@ -228,12 +225,9 @@ export default {
           console.log('运行iOS上');
           client_type = 'ios';
           break;
+        default:
+          client_type = 'web';
       }
-      // #endif
-      // #ifdef H5||MP-WEIXIN
-      client_type = 'browser';
-      //#endif
-      console.log('SYSTEMINFO:', uni.getSystemInfoSync());
       this.client_type = client_type;
       this.client_env = client_env;
       uni.setStorageSync('client_env', client_env);
@@ -265,34 +259,26 @@ export default {
       let that = this;
       let isLogin = false;
       // 检测登录状态
-      // #ifdef MP-WEIXIN
-      wx.checkSession({
-        success() {
-          uni.setStorageSync('is_login', true);
-          console.log('登录未过期');
-          //session_key 未过期，并且在本生命周期一直有效
-        },
-        fail() {
-          uni.setStorageSync('is_login', false);
-          console.log('登录过期');
-          // session_key 已经失效，需要重新执行登录流程
-          // that.toLogin(); //重新登录
-        }
-      });
-      // #endif
       // #ifdef APP-PLUS || H5
       isLogin = uni.getStorageSync('is_login');
-      if (isLogin == true) {
-        this.getMenuData();
-      } else {
-        console.log('H5?APP 环境检测到未登录')
-        this.toAccountLogin();
-      }
       // #endif
+      return isLogin;
     },
     checkAuthorization() {
-      // 查看是否授权
+      // 查看是否授权获取用户信息
       // #ifdef MP-WEIXIN
+      uni.getUserInfo({
+        provider: 'weixin',
+        success: function(infoRes) {
+          uni.setStorageSync('userInfo', infoRes.userInfo);
+        },
+        fail: errMsg => {
+          console.log('获取用户信息失败失败', errMsg);
+          uni.navigateTo({
+            url: '../authorization/authorization'
+          });
+        }
+      });
       let that = this;
       uni.authorize({
         scope: 'scope.userInfo',
@@ -302,28 +288,18 @@ export default {
           uni.getUserInfo({
             provider: 'weixin',
             success: function(infoRes) {
-              uni.setStorageSync('userInfo', infoRes.rawData);
+              uni.setStorageSync('userInfo', infoRes.userInfo);
+            },
+            fail: errMsg => {
+              console.log('获取用户信息失败失败', errMsg);
+              uni.navigateTo({
+                url: '../authorization/authorization'
+              });
             }
           });
         },
         fail(errMsg) {
           that.userInfoAuth = false;
-          console.log(errMsg);
-          let toAuthPageTimes = uni.getStorageSync('toAuthPageTimes');
-          console.log('toAuthPageTimes', toAuthPageTimes);
-          if (!toAuthPageTimes) {
-            uni.setStorageSync('toAuthPageTimes', 0);
-          }
-          if (toAuthPageTimes == 0 || parseInt(toAuthPageTimes) % 4 === 0) {
-            // 记录跳转到授权页面的次数，如果未跳转过则跳转
-            uni.navigateTo({
-              url: '../authorization/authorization'
-            });
-          } else {
-            toAuthPageTimes = parseInt(toAuthPageTimes);
-            toAuthPageTimes++;
-            uni.setStorageSync('toAuthPageTimes', toAuthPageTimes);
-          }
         }
       });
       // #endif
@@ -335,8 +311,8 @@ export default {
         {
           data: [
             {
-              app_no: 'APPNO20200107181133',
-              redirect_uri: 'http://test1.100xsys.cn/home'
+              app_no: this.$api.appNo.wxh5,
+              redirect_uri: this.$api.frontEndAddress
             }
           ],
           serviceName: 'srvwx_public_page_authorization'
@@ -354,21 +330,22 @@ export default {
       }
     },
     saveWxUser() {
-      // 静默登录
+      // 静默登录(验证登录)
       let that = this;
       // #ifdef MP-WEIXIN
       wx.login({
         // 获取小程序code
         success(res) {
           if (res.code) {
+            that.checkAuthorization();
             //验证登录
-            let url = that.getServiceUrl('wx', 'srvwx_app_login_verify', 'operate');
+            let url = that.$api.verifyLogin.url;
             let req = [
               {
                 data: [
                   {
                     code: res.code,
-                    app_no: 'APPNO20200115100113'
+                    app_no: that.$api.appNo.wxmp
                   }
                 ],
                 serviceName: 'srvwx_app_login_verify'
@@ -383,33 +360,70 @@ export default {
                 uni.setStorageSync('expire_timestamp', expire_timestamp); // 过期时间
                 if (resData.login_user_info) {
                   //匿名登录
-                  uni.setStorageSync('visiter_user_info', resData.login_user_info); //匿名登录信息
+                  uni.setStorageSync('is_login', false);
+                  // uni.setStorageSync('visiter_user_info', resData.login_user_info); //匿名登录信息
+                  that.$store.commit('setOpenid', resData.login_user_info.openid);
                   that.openid = resData.login_user_info.openid;
                   uni.setStorageSync('user_type', '匿名用户'); //微信环境匿名用户
-                  console.log('微信小程序环境检测到未登录')
+                  console.log('微信小程序环境---未登录');
                   // that.toAccountLogin();
                 } else {
                   // 已绑定账号用户登录
                   uni.setStorageSync('is_login', true);
                 }
               } else if (response.data.resultCode === 'FAILURE') {
+                uni.setStorageSync('is_login', false);
                 uni.showToast({
                   title: response.data.resultMessage
                 });
               }
             });
           } else {
-            uni.setStorageSync('is_login', true); // 登录状态
+            uni.setStorageSync('is_login', false); // 登录状态
             console.log('登录失败！' + res.errMsg);
           }
         }
       });
       // #endif
       // #ifdef H5
-      const isWeixinClient = this.isWeixinClient();
+      const isWeixinClient = that.isWeixinClient();
       if (isWeixinClient) {
-        let req = {};
+        // 公众号环境
+        let req = [
+          {
+            data: [
+              {
+                code: that.$route.query.code,
+                app_no: that.$api.appNo.wxh5
+              }
+            ],
+            serviceName: 'srvwx_app_login_verify'
+          }
+        ];
+        const url = this.getServiceUrl('oa', 'srvsys_user_menu_select', 'select');
+        this.$http.post(url, req).then(response => {
+          if (response.data.resultCode === 'SUCCESS' && response.data.response[0].response) {
+            let resData = response.data.response[0].response;
+            let loginMsg = {
+              bx_auth_ticket: resData.bx_auth_ticket,
+              expire_time: resData.expire_time
+            };
+            let expire_timestamp = parseInt(new Date().getTime() / 1000) + loginMsg.expire_time; //过期时间的时间戳(秒)
+            uni.setStorageSync('bx_auth_ticket', resData.bx_auth_ticket);
+            uni.setStorageSync('expire_time', resData.expire_time); // 有效时间
+            uni.setStorageSync('expire_timestamp', expire_timestamp); // 过期时间
+            if (resData.login_user_info.data) {
+              // uni.setStorageSync('visiter_user_info', resData.login_user_info.data[0]);
+              this.$store.commit('setOpenid', resData.login_user_info.data[0].openid);
+            }
+            self.$store.commit('setAuthorState', true);
+          } else {
+            self.$store.commit('setAuthorState', false);
+            console.log('授权失败');
+          }
+        });
       }
+
       // #endif
     },
     toAccountLogin() {
@@ -449,26 +463,23 @@ export default {
         this.menus = newArr;
       });
     },
-	async	getmenu(val){
-			let url = this.getServiceUrl('oa', `srvsys_service_columnex_v2_select?colsel_v2=${val}_select`, 'select');
-			let req = {
-				"serviceName":"srvsys_service_columnex_v2_select",
-				"colNames":["*"],
-				"condition":[
-					{"colName":"service_name","value":`${val}_select`,"ruleType":"eq"},
-					{"colName":"use_type","value":"treelist","ruleType":"eq"},
-				],
-				"order":[{"colName":"seq","orderType":"asc"}]}
-			let res =await this.$http.post(url, req)
-			let listName = ['treeList','tabList']
-			let LNindex = res.data.data.is_tree?0:1
-				uni.navigateTo({
-					url:`../list/${listName[LNindex]}?val=`+res.data.data.service_name
-				})
-			
-		},
+    async getmenu(val) {
+      let url = this.getServiceUrl('oa', `srvsys_service_columnex_v2_select?colsel_v2=${val}_select`, 'select');
+      let req = {
+        serviceName: 'srvsys_service_columnex_v2_select',
+        colNames: ['*'],
+        condition: [{ colName: 'service_name', value: `${val}_select`, ruleType: 'eq' }, { colName: 'use_type', value: 'treelist', ruleType: 'eq' }],
+        order: [{ colName: 'seq', orderType: 'asc' }]
+      };
+      let res = await this.$http.post(url, req);
+      let listName = ['treeList', 'tabList'];
+      let LNindex = res.data.data.is_tree ? 0 : 1;
+      uni.navigateTo({
+        url: `../list/${listName[LNindex]}?val=` + res.data.data.service_name
+      });
+    },
     lists(val) {
-		this.getmenu(val)
+      this.getmenu(val);
     },
     fromitem() {
       uni.navigateTo({
@@ -477,8 +488,8 @@ export default {
     },
     toDietRecord() {
       uni.navigateTo({
-        url: '../dietRecord/dietSelect'
-        // url:'../dietRecord/dietRecord'
+        // url: '../dietRecord/dietSelect'
+        url:'../dietRecord/dietRecord'
       });
     }
   }
@@ -499,9 +510,12 @@ page {
 .page_edu {
   width: 100%;
 }
-
+.status_bar {
+  height: var(--status-bar-height);
+  background-color: #0bc99d;
+}
 .page_edu_header {
-  padding-top: var(--status-bar-height);
+  // padding-top: var(--status-bar-height);
   background-color: #0bc99d;
   width: 100%;
   height: realSize(415px);
@@ -586,7 +600,6 @@ page {
 .page_content {
   width: 100%;
   margin-top: -74px;
-
   .menu {
     margin-left: 10px;
     margin-right: 10px;

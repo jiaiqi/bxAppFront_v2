@@ -5,7 +5,8 @@
 </template>
 
 <script>
-import * as echarts from '@/components/echarts/echarts.simple.min.js';
+import * as echarts from '@/components/echarts/echarts.min.js';
+// import * as echarts from '@/components/echarts/echarts.simple.min.js';
 import mpvueEcharts from '@/components/mpvue-echarts/src/echarts.vue';
 var that;
 let chart = null;
@@ -34,8 +35,10 @@ lineOption = {
     }
   },
   legend: {
-    data: [{name:'牛奶',textStyle: {color: 'red'}}, {name:'鸡蛋',textStyle: {color: 'red'}}, {name:'面包',textStyle: {color: 'red'}}],
+    data: ['牛奶','鸡蛋','面包'],
+    // data: [{name:'牛奶',textStyle: {color: 'red'}}, {name:'鸡蛋',textStyle: {color: 'red'}}, {name:'面包',textStyle: {color: 'red'}}],
     show:true
+    
   },
   grid: {
     left: '3%',
@@ -57,7 +60,7 @@ lineOption = {
       stack: '总量',
       label: {
         normal: {
-          show: true
+          show: false
         }
       },
       data: [320, 302, 301, 334, 390, 330]
@@ -68,7 +71,7 @@ lineOption = {
       stack: '总量',
       label: {
         normal: {
-          show: true
+          show: false
         }
       },
       data: [120, 132, 101, 134, 90, 230]
@@ -79,7 +82,7 @@ lineOption = {
       stack: '总量',
       label: {
         normal: {
-          show: true
+          show: false
         }
       },
       data: [220, 182, 191, 234, 290, 330]

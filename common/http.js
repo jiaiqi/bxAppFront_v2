@@ -21,11 +21,13 @@ let FormateDate = function(date) {
 //添加请求拦截器
 fly.interceptors.request.use((request) => {
   //给所有请求添加自定义header
-  let outTime = uni.getStorageSync("expire_timestamp") //过期时间
-  let date = parseInt(new Date().getTime() / 1000)
-  let isExpired = outTime < date
-  console.log('登录是否过期:', isExpired, '\n过期时间:', FormateDate(new Date(outTime * 1000)))
-  let bxAuthTicket = uni.getStorageSync("bx_auth_ticket")
+  const outTime = uni.getStorageSync("expire_timestamp") //过期时间
+  const date = parseInt(new Date().getTime() / 1000)
+  if(outTime){
+    const isExpired = outTime < date
+    console.log('登录是否过期:', isExpired, '\n过期时间:', FormateDate(new Date(outTime * 1000)),outTime,date)
+  }
+  const bxAuthTicket = uni.getStorageSync("bx_auth_ticket")
   if (bxAuthTicket) {
     request.headers["bx_auth_ticket"] = bxAuthTicket
   }
@@ -44,10 +46,9 @@ fly.interceptors.response.use(
   (res) => {
     //只将请求结果的data字段返回
     if (res.data.resultCode === "0011") { //未登录
-      uni.setStorageSync('is_login', 'false')
-      let login_user_info = uni.getStorageSync('login_user_info')
+      uni.setStorageSync('is_login', false)
       console.log('login_user_info', login_user_info)
-      if (login_user_info.openid) {
+      if (login_user_info&&login_user_info.openid) {
         uni.reLaunch({
           url: '/pages/login/login?openid=' + login_user_info.openid
         });

@@ -19,23 +19,7 @@ export default {
       return selectRequestObj
     }
     
-    /**
-     * 
-     * @param {String} app 
-     * @param {String} srv - 服务名(serviceName)
-     * @param {String} srvType 
-     * @param {String} url - 协议+ip+端口
-     */
-    Vue.prototype.getServiceUrl = function (app, srv, srvType, url) {
-      /**
-       * 获取转换URL app, srv, srvType, url
-       */
-      let urlVal = url || Vue.prototype.$api.srvHost
-      let appVal = app
-      let srvTypeVal = srvType
-      let srvVal = srv
-      return urlVal + '/' + appVal + '/' + srvTypeVal + '/' + srvVal
-    }
+    
     Vue.prototype.getKeyOrValue = function (obj, ke, val, name, icon) { // 给自定义方法起个名
       let Obj = obj
       let item = Obj.map(function (item) {
@@ -76,14 +60,7 @@ export default {
       this.newA(arr, num)
       return newArr
     }
-    Vue.prototype.isWeixinClient = function () {
-      // 判断是否当前环境是微信
-      // #ifdef H5
-      let ua = navigator.userAgent.toLowerCase()
-      let isWeixin = ua.indexOf('micromessenger') !== -1
-      if (isWeixin) { return true } else { return false }
-      // #endif
-    }
+    
     Vue.prototype.getQueryString = function (name) {
       var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
       var r = window.location.search.substr(1).match(reg)
@@ -234,24 +211,7 @@ export default {
         return '查询失败'
       }
     }
-    Vue.prototype.deepClone = function (obj) {
-      // 深拷贝
-      function isObject (o) {
-        return (typeof o === 'object' || typeof o === 'function') && o !== null
-      }
-
-      if (!isObject(obj)) {
-        throw new Error('非对象')
-      }
-
-      let isArray = Array.isArray(obj)
-      let newObj = isArray ? [...obj] : { ...obj }
-      Reflect.ownKeys(newObj).forEach(key => {
-        newObj[key] = isObject(obj[key]) ? Vue.prototype.deepClone(obj[key]) : obj[key]
-      })
-
-      return newObj
-    }
+   
     Vue.prototype.deleteRow = async function (srv, cond) { // 删除数据
       let self = this
       let reqs = []

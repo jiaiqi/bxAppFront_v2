@@ -22,6 +22,7 @@ const store = new Vuex.Store({
       state.is_login = is_login;
     },
     setOpenid(state, openid) {
+      console.log('openid',openid)
       state.openid = openid
     },
     setTicket(state, ticket) {

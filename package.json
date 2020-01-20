@@ -20,8 +20,9 @@
   },
   "homepage": "https://github.com/jiaiqi/bxAppFront_v2#readme",
   "dependencies": {
-    "echarts": "^4.6.0",
     "flyio": "^0.6.14",
-    "mpvue-echarts": "^0.3.2"
+    "echarts": "^4.0.4",
+    "mpvue": "^1.0.0",
+    "mpvue-echarts": "^0.2.3"
   }
 }

@@ -3,6 +3,7 @@
     {
       "path": "pages/index/index",
       "style": {
+        "navigationStyle":"custom", //取消默认导航栏
         "app-plus": {
           "titleNView": false
         }
@@ -73,7 +74,11 @@
         "navigationBarBackgroundColor": "#fff"
       }
     }
-  ],
+      ,{
+            "path" : "pages/dietRecord/basicInfo",
+            "style" : {}
+        }
+    ],
   "globalStyle": {
     "navigationBarTitleText": "百想软件开发平台",
     "navigationBarBackgroundColor": "#0bc99d",
