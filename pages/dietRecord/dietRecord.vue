@@ -1,15 +1,18 @@
 <template>
   <view class="diet-wrap">
     <uniCharts></uniCharts>
+    <food-select></food-select>
   </view>
 </template>
 
 <script>
 import uniCharts from '@/components/uni-charts/uni-charts.vue'
+import foodSelect from '@/components/food-select/food-select.vue'
 export default {
   name: 'DietRecord',
   components: {
-    uniCharts
+    uniCharts,
+    foodSelect
   },
   data() {
     return {

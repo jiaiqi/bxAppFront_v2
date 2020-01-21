@@ -124,5 +124,6 @@ export default {
 <style>
 .chart-wrap {
   height: 100%;
+  background-color: #fff;
 }
 </style>
